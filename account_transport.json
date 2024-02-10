@@ -1,0 +1,10 @@
+{
+  "service": "gmail",
+  "auth": {
+    "type": "OAuth2",
+    "user": "noreply.ganao@gmail.com",
+    "clientId": "57307569355-eqomd49h2q0ebequ1qqdpivu56hjnj8k.apps.googleusercontent.com",
+    "clientSecret": "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",
+    "refreshToken": "ya29.a0AfB_byD4Jl8InNrZy5NILPNY11AbWwxVULkGihiVbK9bd0Cm1R6ubZJ419C_WfxlbxCInT0VeetZ61GnSZHsntApon6uO7DNSItHeJBZQmhDDPMB-3ZtaLYjp5NtvDTFXFRomboaXZf3gn6RxxR2-yVeC5Kaov2HA4tRaCgYKAacSARISFQHGX2Mi4pKXg463_Y1Y2Yuto3inJg0171"
+  }
+}

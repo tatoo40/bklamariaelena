@@ -1,0 +1,1556 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+
+
+model Usuario {
+  id                      Int                   @id @default(autoincrement())
+  createdAt               DateTime              @default(now())
+  updatedAt               DateTime              @updatedAt
+  id_mod                  Int                   @default(0)
+  estado                  String                @default("S")
+  email                   String                @unique
+  hash                    String
+  hashRt                  String?
+  telefono_contacto       String?
+  nombre                  String?
+  apellido                String?
+  isRegisteredWithGoogle  Boolean               @default(false)
+  isAdmin                 Boolean               @default(false)
+  token_recuperacion_pass String?
+  id_rol                  Int
+  id_idioma               Int?               
+  roles                   Rol                   @relation(fields: [id_rol], references: [id])
+  usuarios                usuarios_x_empresas[]
+  permisos_x_usuario_seccion Permisos_x_usuario_seccion[]
+
+
+
+  @@map("usuarios")
+}
+
+model Rol {
+  id          Int       @id @default(autoincrement())
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  id_mod      Int       @default(0)
+  estado      String    @default("S")
+  descripcion String
+  usuarios    Usuario[]
+
+  permisos_x_rol_seccion Permisos_x_rol_seccion[] 
+
+  @@map("roles")
+}
+
+model Moneda {
+  id                 Int                  @id @default(autoincrement())
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+  id_mod             Int                  @default(0)
+  estado             String               @default("S")
+  descripcion        String
+  simbolo            String
+  cpt_fact_prov      Cpt_fact_prov[]
+  tipo_cambio_diario Tipo_cambio_diario[]
+  cpt_facturas       Cpt_facturas[]
+  cpf_contaux       Cpf_contaux[]
+    cpp_fact_prov        Cpp_fact_prov[]
+    cpt_registros_gasto Cpt_registros_gasto[]
+    cpp_facturas Cpp_facturas[]
+    cpt_ingresoRomaneo Cpt_ingresoRomaneo[]
+    cpp_ingresoRomaneo Cpp_ingresoRomaneo[]
+    cpt_pago_fact_prov Cpt_pago_fact_prov[]
+
+  @@map("monedas")
+}
+
+model Tipo_cambio_diario {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  id_mod    Int      @default(0)
+  estado    String   @default("S")
+  valor     Decimal
+  fecha     DateTime
+  id_moneda Int
+  monedas   Moneda   @relation(fields: [id_moneda], references: [id])
+
+  @@map("tipo_cambio_diario")
+}
+
+model Tipo_costeo {
+  id          Int          @id @default(autoincrement())
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  id_mod      Int          @default(0)
+  estado      String       @default("S")
+  descripcion String
+  cpf_costos  Cpf_costos[]
+
+  @@map("tipos_costeo")
+}
+
+
+model Idioma {
+  id          Int          @id @default(autoincrement())
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  id_mod      Int          @default(0)
+  estado      String       @default("S")
+  descripcion String
+  prefijo String
+
+
+  @@map("idiomas")
+}
+
+
+model Tipo_titular {
+  id          Int       @id @default(autoincrement())
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  id_mod      Int       @default(0)
+  estado      String    @default("S")
+  descripcion String
+  titulares   Titular[]
+
+  @@map("tipos_titulares")
+}
+
+model Empresa {
+  id                   Int                    @id @default(autoincrement())
+  createdAt            DateTime               @default(now())
+  updatedAt            DateTime               @updatedAt
+  id_mod               Int                    @default(0)
+  estado               String                 @default("S")
+  nombre               String
+  razon_social         String?
+  rut                  String
+  direccion            String
+  email_contacto       String
+  telefono_contacto    String
+  observaciones        String
+  aprobada             Boolean?
+  token                String?
+  activa               Boolean?
+  articulos            Articulo[]
+  cpf_costos           Cpf_costos[]
+  cpf_stockaux         Cpf_stockaux[]
+  cpp_movimiento_stock Cpp_movimiento_stock[]
+  empresas             usuarios_x_empresas[]
+  cpt_registros_sanitarios Cpt_registro_sanitario[]
+  cpp_registros_sanitarios Cpp_registro_sanitario[]
+  cpf_regsitros_sanitario Cpf_registro_sanitario[]
+  titulares Titular[]
+  cpf_consumos Cpf_consumos[]
+  cpt_identidad Cpt_identidad[]
+  cpt_altaganado Cpt_altaganado[]
+  cpt_parametros_x_empresa Cpt_parametros_x_empresa[]
+
+  @@map("empresas")
+}
+
+
+
+model usuarios_x_empresas {
+  id_usuario Int
+  id_empresa Int
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+  estado               String                 @default("S")
+  empresa    Empresa    @relation(fields: [id_empresa], references: [id])
+  usuario    Usuario    @relation(fields: [id_usuario], references: [id])
+  depositos  Deposito[]
+
+  @@id([id_usuario, id_empresa])
+}
+
+model Deposito {
+  id                   Int                 @id @default(autoincrement())
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
+  id_mod               Int                 @default(0)
+  estado               String              @default("S")
+  nombre               String
+  superficie           Int?
+  dicose               String?
+  latitud              String?
+  longitud             String?
+  superficie_arrendada Int?
+  id_departamento      Int
+  id_usuario           Int
+  id_empresa           Int
+  departamento         Departamento        @relation(fields: [id_departamento], references: [id])
+  usuarios_x_empresas  usuarios_x_empresas @relation(fields: [id_usuario, id_empresa], references: [id_usuario, id_empresa])
+  sector               Sector[]
+
+  @@map("depositos")
+}
+
+
+model Sector {
+  id                   Int                @id @default(autoincrement())
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
+  id_mod               Int                 @default(0)
+  estado               String              @default("S")
+  nombre               String
+  latitud              String?
+  longitud             String?
+  superficie           Int?
+  id_deposito          Int
+  id_empresa           Int
+  deposito             Deposito    @relation(fields: [id_deposito],references: [id])
+  embarcadero          Boolean?
+  pasturas_x_sector       Pasturas_x_sector[] 
+  cpf_consumos Cpf_consumos[]
+  cpf_stockaux Cpf_stockaux[]
+  
+  @@map("sectores")
+
+
+}
+
+model Pasturas{
+  id                   Int                @id @default(autoincrement())
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
+  id_mod               Int                 @default(0)
+  estado               String              @default("S")
+  nombre               String
+  pasturas_x_sector       Pasturas_x_sector[] 
+  vida_util_dias            Int
+
+
+  @@map("pasturas")
+}
+
+
+model Pasturas_x_sector{
+  id                   Int                @id @default(autoincrement())
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
+  id_mod               Int                 @default(0)
+  estado               String              @default("S")
+  descripcion               String
+  observaciones               String
+  fecha_siembra     DateTime
+  fecha_pastoreo    DateTime
+  fecha_estimada_fin_pastoreo DateTime
+  fecha_fin_pastoreo DateTime
+  id_pastura Int
+  id_sector  Int
+  id_empresa           Int  
+  pasturas             Pasturas    @relation(fields: [id_pastura],references: [id])
+  sectores             Sector    @relation(fields: [id_sector],references: [id])
+
+
+  @@map("pasturas_x_sector")
+}
+
+
+model Cpt_recaravaneo{
+  id                   Int                @id @default(autoincrement())
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
+  id_mod               Int                 @default(0)
+  estado               String              @default("S")
+  observaciones               String
+  fecha    DateTime
+  cod_articulo    String
+  id_categoria_ganado Int
+  id_marca_ganado Int
+  nro_lote String
+  cod_identidad String
+  cod_identidad_nuevo String
+  id_empresa Int
+  id_sexo Int
+  articulos             Articulo    @relation(fields: [cod_articulo],references: [cod_articulo])
+
+
+
+  @@map("cpt_recaravaneo")
+}
+
+
+model Cpt_evolucion_ganado{
+  id                   Int                @id @default(autoincrement())
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
+  id_mod               Int                 @default(0)
+  estado               String              @default("S")
+  cod_articulo    String
+  cod_articulo_evoluciona    String
+  peso_fin Decimal
+  articulos             Articulo    @relation("Articulos",fields: [cod_articulo],references: [cod_articulo])
+  articulos_evoluciona  Articulo    @relation("ArticulosEvoluciona",fields: [cod_articulo_evoluciona],references: [cod_articulo])
+
+  @@map("cpt_evolucion_ganado")
+}
+
+
+model Cpt_registro_lluvias{
+  id                   Int                @id @default(autoincrement())
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
+  id_mod               Int                 @default(0)
+  estado               String              @default("S")
+  cantidad_mm    Decimal
+  fecha    DateTime
+  observacion String
+  id_empresa Int
+
+  @@map("cpt_registro_lluvias")
+}
+
+
+model Departamento {
+  id          Int        @id @default(autoincrement())
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  estado      String     @default("S")
+  descripcion String
+  depositos   Deposito[]
+
+  @@map("departamentos")
+}
+
+model Estado_ganado {
+  id          Int      @id @default(autoincrement())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  estado      String   @default("S")
+  descripcion String
+
+  @@map("estados_ganado")
+}
+
+model Propiedad_ganado {
+  id                   Int                    @id @default(autoincrement())
+  createdAt            DateTime               @default(now())
+  updatedAt            DateTime               @updatedAt
+  estado               String                 @default("S")
+  descripcion          String
+  cpt_movimiento_stock Cpt_movimiento_stock[]
+
+  @@map("propiedad_ganado")
+}
+
+model Tipo_ganado {
+  id                Int                @id @default(autoincrement())
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  estado            String             @default("S")
+  descripcion       String
+  categorias_ganado Categoria_ganado[]
+  marcas_ganado     Marca_ganado[]
+
+  @@map("tipos_ganado")
+}
+
+model Categoria_ganado {
+  id             Int         @id @default(autoincrement())
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+  estado         String      @default("S")
+  descripcion    String
+  id_tipo_ganado Int
+  rango_dia_inicio Int?
+  rango_dia_fin  Int?
+  cantidad_dientes Int?
+  abreviacion      String?
+  sexo           String?
+  predeterminada Boolean?
+  tipo_ganado    Tipo_ganado @relation(fields: [id_tipo_ganado], references: [id])
+  articulos      Articulo[]
+  cpt_identidad Cpt_identidad[]
+  cpt_altaganado Cpt_altaganado[]
+  @@map("categorias_ganado")
+}
+
+model Titular {
+  id                   Int             @id @default(autoincrement())
+  createdAt            DateTime        @default(now())
+  updatedAt            DateTime        @updatedAt
+  id_mod               Int             @default(0)
+  estado               String          @default("S")
+  nombre_fantasia      String
+  razon_social         String?
+  rut                  String
+  direccion            String
+  email                String
+  observaciones        String
+  nombre_contacto      String
+  telefono_contacto    String
+  id_tipo_titular      Int
+  id_categoria_prov    Int
+  id_categoria_cliente Int
+  id_empresa           Int?
+  categoria_cli        Catelgoria_cli  @relation(fields: [id_categoria_cliente], references: [id])
+  categoria_prov       Categoria_prov  @relation(fields: [id_categoria_prov], references: [id])
+  tipo_titular         Tipo_titular    @relation(fields: [id_tipo_titular], references: [id])
+  empresas         Empresa?    @relation(fields: [id_empresa], references: [id])
+  cpt_fact_prov        Cpt_fact_prov[]
+  cpp_fact_prov        Cpp_fact_prov[]
+  cpt_facturas       Cpt_facturas[]
+  cpf_contaux       Cpf_contaux[]
+   articulos_x_titular Articulos_x_titular[]
+   cpt_registros_gasto Cpt_registros_gasto[]
+   cpp_facturas Cpp_facturas[]
+   cpt_ingresoRomaneo Cpt_ingresoRomaneo[]
+   cpp_ingresoRomaneo Cpp_ingresoRomaneo[]
+   cpt_pago_fact_prov Cpt_pago_fact_prov[]
+
+
+  @@map("titulares")
+}
+
+model Catelgoria_cli {
+  id          Int       @id @default(autoincrement())
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  id_mod      Int       @default(0)
+  estado      String    @default("S")
+  descripcion String
+  titulares   Titular[]
+
+  @@map("categorias_cliente")
+}
+
+model Categoria_prov {
+  id          Int       @id @default(autoincrement())
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  id_mod      Int       @default(0)
+  estado      String    @default("S")
+  descripcion String
+  titulares   Titular[]
+
+  @@map("categorias_prov")
+}
+
+model Marca_ganado {
+  id             Int         @id @default(autoincrement())
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+  estado         String      @default("S")
+  descripcion    String
+  cod_snig       String?
+  id_tipo_ganado Int
+  abreviacion      String?
+  tipo_ganado    Tipo_ganado @relation(fields: [id_tipo_ganado], references: [id])
+  articulos      Articulo[]
+  cpt_identidad  Cpt_identidad[]
+  cpt_altaganado Cpt_altaganado[]
+  
+  @@map("marcas_ganado")
+
+}
+
+model Estado_stock {
+  id           Int            @id @default(autoincrement())
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  estado       String         @default("S")
+  descripcion  String
+  es_fisico    String         @default("S")
+  cpf_stockaux Cpf_stockaux[]
+  cpf_consumos Cpf_consumos[]
+  @@map("estados_stock")
+}
+
+model Tipo_toma_peso {
+  id                   Int                    @id @default(autoincrement())
+  createdAt            DateTime               @default(now())
+  updatedAt            DateTime               @updatedAt
+  estado               String                 @default("S")
+  descripcion          String
+  cpt_movimiento_stock Cpt_movimiento_stock[]
+
+  @@map("tipos_toma_peso")
+}
+
+
+model Unidades {
+  id                Int            @id @default(autoincrement())
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+  estado            String         @default("S")
+  descripcion       String
+  descripcion_corta String
+  articulos_cmp         Articulo[] @relation("unidad_cmp")
+  articulos_vta         Articulo[] @relation("unidad_vta")
+  articulos_stk         Articulo[] @relation("unidad_stk")
+  cpf_costos        Cpf_costos[]
+  cpf_stockaux      Cpf_stockaux[]
+  cpf_consumos Cpf_consumos[]
+  @@map("unidades")
+}
+
+model Motivo_sanitario {
+  id          Int      @id @default(autoincrement())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  estado      String   @default("S")
+  descripcion String
+  frecuencia Int?
+  unidad_frecuencia String?
+  recurrente Boolean?
+  dosis Decimal?
+  id_empresa           Int?
+  cod_articulo String?
+  articulos    Articulo?  @relation(fields: [cod_articulo], references: [cod_articulo])
+
+
+  cpt_registros_sanitarios Cpt_registro_sanitario[]
+  cpp_regsitros_sanitario Cpp_registro_sanitario[]  
+  cpf_regsitros_sanitario Cpf_registro_sanitario[] 
+
+  @@map("motivos_sanitarios")
+}
+
+model Tipos_mov_stock {
+  id                Int                @id @default(autoincrement())
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  estado            String             @default("S")
+  descripcion       String
+  naturaleza        Int
+  motivos_mov_stock Motivo_mov_stock[]
+
+
+  @@map("tipos_mov_stock")
+}
+
+model Motivo_mov_stock {
+  id                   Int                    @id @default(autoincrement())
+  createdAt            DateTime               @default(now())
+  updatedAt            DateTime               @updatedAt
+  estado               String                 @default("S")
+  descripcion          String
+  cod_docum            String
+  id_tipo_mov_stk      Int
+  tipo_mov_stk         Tipos_mov_stock        @relation(fields: [id_tipo_mov_stk], references: [id])
+  cpf_stockaux         Cpf_stockaux[]
+  cpf_consumos         Cpf_consumos[]
+  cpt_movimiento_stock Cpt_movimiento_stock[]
+
+  @@map("motivos_mov_stock")
+}
+
+model Articulo {
+  id                   Int                    @id @default(autoincrement())
+  cod_articulo         String                 @unique
+  createdAt            DateTime               @default(now())
+  updatedAt            DateTime               @updatedAt
+  estado               String                 @default("S")
+  nombre               String
+  id_unidad_stk        Int
+  id_unidad_vta        Int?
+  id_unidad_cmp        Int?
+  id_categoria_ganado  Int
+  id_marca_ganado      Int
+  id_empresa           Int
+  id_tipo_articulo     Int?
+  id_tasa_iva_cmp      Int?
+  id_tasa_iva_vta      Int?
+  factor_conv_cmp_a_stk Decimal?
+  categorias_ganado    Categoria_ganado       @relation(fields: [id_categoria_ganado], references: [id])
+  empresas             Empresa                @relation(fields: [id_empresa], references: [id])
+  marcas_ganado        Marca_ganado           @relation(fields: [id_marca_ganado], references: [id])
+  unidad_stk           Unidades?           @relation("unidad_stk",fields: [id_unidad_stk], references: [id])
+  unidad_vta           Unidades?           @relation("unidad_vta",fields: [id_unidad_vta], references: [id])
+  unidad_cmp           Unidades?           @relation("unidad_cmp",fields: [id_unidad_cmp], references: [id])
+  tasas_iva_cmp            Tasas_iva?           @relation("tasa_iva_cmp",fields: [id_tasa_iva_cmp], references: [id])
+  tasas_iva_vta            Tasas_iva?          @relation("tasa_iva_vta",fields: [id_tasa_iva_vta], references: [id])
+  tipo_art             Tipo_articulo?         @relation(fields: [id_tipo_articulo], references: [id])
+
+
+  cpf_costos           Cpf_costos[]
+  cpf_stockaux         Cpf_stockaux[]
+  cpp_movimiento_stock Cpp_movimiento_stock[]
+  cpt_movimiento_stock Cpt_movimiento_stock[]
+  cpp_registros_sanitarios Cpp_registro_sanitario[]
+  cpp_fact_prov        Cpp_fact_prov[]
+  articulos_x_titular Articulos_x_titular[]
+  cpt_recaravaneo     Cpt_recaravaneo[]
+  motivos_sanitario    Motivo_sanitario[]
+  cpt_registro_sanitario Cpt_registro_sanitario[]
+  cpt_evolucion_ganado      Cpt_evolucion_ganado[] @relation("Articulos")
+  cpt_evolucion_ganado_nuevo Cpt_evolucion_ganado[] @relation("ArticulosEvoluciona")
+  cpf_consumos Cpf_consumos[]
+  cpp_facturas Cpp_facturas[]
+  cpp_ingresoRomaneo Cpp_ingresoRomaneo[]
+  cpf_regsitros_sanitario Cpf_registro_sanitario[] 
+  cpt_identidad Cpt_identidad[] 
+  cpt_altaganado Cpt_altaganado[]
+
+
+  @@map("articulos")
+}
+
+model Tipo_articulo{
+  id                   Int                    @id @default(autoincrement())
+  createdAt            DateTime               @default(now())
+  updatedAt            DateTime               @updatedAt
+  estado               String                 @default("S")
+  descripcion               String
+
+  articulos    Articulo[]
+
+  @@map("tipo_articulo")
+
+}
+
+
+model Tipos_gasto{
+  id                   Int                    @id @default(autoincrement())
+  createdAt            DateTime               @default(now())
+  updatedAt            DateTime               @updatedAt
+  estado               String                 @default("S")
+  descripcion               String
+
+  cpt_registros_gasto    Cpt_registros_gasto[]
+
+  @@map("tipos_gasto")
+
+}
+
+model Tasas_iva{
+  id                   Int                    @id @default(autoincrement())
+  createdAt            DateTime               @default(now())
+  updatedAt            DateTime               @updatedAt
+  estado               String                 @default("S")
+  descripcion               String
+  porcentaje Decimal
+
+  @@map("tasas_iva")
+
+  articulos_cmp Articulo[] @relation("tasa_iva_vta")
+  articulos_vta Articulo[] @relation("tasa_iva_cmp")
+  cpp_fact_prov        Cpp_fact_prov[]
+
+}
+
+model Cpt_registros_gasto{
+  id                   Int                    @id @default(autoincrement())
+  nro_trans       Int
+  createdAt            DateTime               @default(now())
+  updatedAt            DateTime               @updatedAt
+  estado               String                 @default("S")
+  descripcion               String
+  fecha DateTime
+  cod_docum String
+  importe_mo    Decimal?     
+  importe_mn    Decimal?
+  importe_tr    Decimal?
+  tc            Decimal
+  id_moneda       Int
+  id_titular      Int
+  id_empresa      Int       @default(1)
+  monedas         Moneda    @relation(fields: [id_moneda], references: [id])
+  titulares       Titular   @relation(fields: [id_titular], references: [id])
+  id_tipo_gasto Int
+  tipos_gasto Tipos_gasto @relation(fields: [id_tipo_gasto], references: [id])
+
+
+  @@map("cpt_registros_gasto")
+
+}
+
+
+model Articulos_x_titular{
+
+  id                   Int                    @id @default(autoincrement())
+  cod_articulo         String                 
+  createdAt            DateTime               @default(now())
+  updatedAt            DateTime               @updatedAt
+  estado               String                 @default("S")
+  id_titular             Int
+  id_empresa           Int?
+
+  titulares Titular @relation(fields: [id_titular], references: [id])
+  articulos Articulo @relation(fields: [cod_articulo], references: [cod_articulo])
+
+  @@map("articulos_x_titular")
+}
+
+model Cpf_consumos {
+  id              Int              @id @default(autoincrement())
+  nro_trans       Int
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  estado          String           @default("S")
+  cantidad        Decimal?         @default(1)
+  cantidad2       Decimal?
+  cantidad3       Decimal?
+  signo           Int?
+  fecha           DateTime?
+  id_motivo_stk   Int
+  cod_articulo    String
+  id_unidad_stk   Int
+  id_empresa      Int
+  id_sector     Int
+  id_estado_stock Int
+  articulos       Articulo         @relation(fields: [cod_articulo], references: [cod_articulo])
+  sectores        Sector         @relation(fields: [id_sector], references: [id])
+  empresas        Empresa          @relation(fields: [id_empresa], references: [id])
+  estados_stock   Estado_stock     @relation(fields: [id_estado_stock], references: [id])
+  motivos_stock   Motivo_mov_stock @relation(fields: [id_motivo_stk], references: [id])
+  unidad_stk      Unidades     @relation(fields: [id_unidad_stk], references: [id])
+
+
+
+  @@map("cpf_consumos")
+}
+
+
+
+model Cpf_stockaux {
+  id              Int              @id @default(autoincrement())
+  nro_trans       Int
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  estado          String           @default("S")
+  cantidad        Decimal?         @default(1)
+  cantidad2       Decimal?
+  cantidad3       Decimal?
+  signo           Int?
+  nro_lote        String?     
+  cod_identidad   String?
+  fecha           DateTime?
+  id_motivo_stk   Int
+  cod_articulo    String
+  id_unidad_stk   Int
+  id_empresa      Int
+  id_sector     Int
+  id_estado_stock Int
+  articulos       Articulo         @relation(fields: [cod_articulo], references: [cod_articulo])
+  sectores        Sector           @relation(fields: [id_sector], references: [id])
+  empresas        Empresa          @relation(fields: [id_empresa], references: [id])
+  estados_stock   Estado_stock     @relation(fields: [id_estado_stock], references: [id])
+  motivos_stock   Motivo_mov_stock @relation(fields: [id_motivo_stk], references: [id])
+  unidad_stk      Unidades         @relation(fields: [id_unidad_stk], references: [id])
+
+
+
+  @@map("cpf_stockaux")
+}
+
+model Cpf_costos {
+  id            Int          @id @default(autoincrement())
+  nro_trans     Int
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  estado        String       @default("S")
+  importe_mo    Decimal?     
+  importe_mn    Decimal?
+  importe_tr    Decimal?
+  tc            Decimal
+  signo         Int?
+  nro_lote      String?       
+  cod_identidad String?
+  fecha         DateTime?
+  nro_trans_ref Int?         @default(0)
+  cod_articulo  String?
+  id_unidad_stk Int?
+  id_empresa    Int?
+  id_tipo_costo Int?
+  articulos     Articulo?     @relation(fields: [cod_articulo], references: [cod_articulo])
+  empresas      Empresa?      @relation(fields: [id_empresa], references: [id])
+  tipos_costeo  Tipo_costeo?  @relation(fields: [id_tipo_costo], references: [id])
+  unidad_stk    Unidades? @relation(fields: [id_unidad_stk], references: [id])
+
+  @@map("cpf_costos")
+}
+
+model Cpt_fact_prov {
+  id              Int       @id @default(autoincrement())
+  nro_trans       Int
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  estado          String    @default("S")
+  importe_mo      Decimal?
+  importe_mn      Decimal?
+  importe_tr      Decimal?  
+  importe_total_mo      Decimal?
+  importe_total_mn      Decimal?
+  importe_total_tr      Decimal?
+  importe_iva_basico_mo      Decimal?
+  importe_iva_basico_mn      Decimal?
+  importe_iva_basico_tr      Decimal?
+  importe_iva_minimo_mo      Decimal?
+  importe_iva_minimo_mn      Decimal?
+  importe_iva_minimo_tr      Decimal?  
+  importe_iva_excento_mo      Decimal?
+  importe_iva_excento_mn      Decimal?
+  importe_iva_excento_tr      Decimal?   
+  importe_iva_total_mo      Decimal?
+  importe_iva_total_mn      Decimal?
+  importe_iva_total_tr      Decimal?  
+
+
+  fecha           DateTime?
+  nro_trans_ref   Int
+  serie_fact_prov String
+  nro_fact_prov   Int
+  id_moneda       Int
+  id_titular      Int
+  id_empresa      Int       @default(1)
+  monedas         Moneda    @relation(fields: [id_moneda], references: [id])
+  titulares       Titular   @relation(fields: [id_titular], references: [id])
+  tc              Decimal?
+  cod_docum       String
+  afecta_costo        String?
+
+  @@map("cpt_fact_prov")
+}
+
+
+
+model Cpp_fact_prov {
+  id              Int       @id @default(autoincrement())
+  nro_trans       Int
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  estado          String    @default("S")
+  cantidad        Int
+  cantidad_stk   Decimal?
+  precio_unitario Decimal
+  importe_mo      Decimal?
+  importe_mn      Decimal?
+  importe_tr      Decimal?  
+  importe_total_mo      Decimal?
+  importe_total_mn      Decimal?
+  importe_total_tr      Decimal?
+  importe_iva_basico_mo      Decimal?
+  importe_iva_basico_mn      Decimal?
+  importe_iva_basico_tr      Decimal?
+  importe_iva_minimo_mo      Decimal?
+  importe_iva_minimo_mn      Decimal?
+  importe_iva_minimo_tr      Decimal?  
+  importe_iva_excento_mo      Decimal?
+  importe_iva_excento_mn      Decimal?
+  importe_iva_excento_tr      Decimal? 
+  fecha           DateTime?
+  serie_fact_prov String
+  nro_fact_prov   Int
+  id_moneda       Int
+  id_tasa_iva_cmp Int?
+  id_titular      Int
+  id_empresa      Int       @default(1)
+  tc              Decimal?
+  conv_uni_cmp_a_stk Decimal?
+  cod_docum       String
+  cod_articulo    String
+  articulos       Articulo    @relation(fields: [cod_articulo], references: [cod_articulo])
+  monedas         Moneda    @relation(fields: [id_moneda], references: [id])
+  titulares       Titular   @relation(fields: [id_titular], references: [id])
+  tasa_iva_cmp    Tasas_iva? @relation(fields: [id_tasa_iva_cmp], references: [id])
+  @@map("cpp_fact_prov")
+}
+
+
+model Cpt_pago_fact_prov {
+  id              Int       @id @default(autoincrement())
+  nro_trans       Int
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  estado          String    @default("S")
+  importe_mo      Decimal?
+  importe_mn      Decimal?
+  importe_tr      Decimal?  
+  fecha           DateTime?
+  nro_trans_ref   Int
+  serie_fact_prov String
+  nro_fact_prov   Int
+  id_moneda       Int
+  id_titular      Int
+  id_empresa      Int       @default(1)
+  tc              Decimal?
+  cod_docum       String
+  id_estado_pago  Int
+  monedas         Moneda    @relation(fields: [id_moneda], references: [id])
+  titulares       Titular   @relation(fields: [id_titular], references: [id])  
+  estados_pago         Estado_pago    @relation(fields: [id_estado_pago], references: [id])
+
+
+  @@map("cpt_pago_fact_prov")
+
+}
+
+model Estado_pago {
+  id              Int       @id @default(autoincrement())
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  estado          String    @default("S")
+  descripcion     String
+
+  cpt_pago_fact_prov Cpt_pago_fact_prov[]
+
+  @@map("estado_pago")
+
+}
+
+
+model Cpt_identidad {
+
+  id              Int       @id @default(autoincrement())
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  estado          String    @default("S")
+  cod_articulo    String?
+  nro_lote        String
+  cod_identidad   String
+  dias            Int
+  meses           Int
+  propietario     String
+  ubicacion       String
+  tenedor         String
+  status_vida     String
+  errores         String
+  sexo            String
+  cruza           String
+  id_empresa      Int?
+  fecha_ingreso   DateTime?
+  documento_ingreso String?
+  fecha_identificacion DateTime?
+  fecha_registro    DateTime?
+  status_trazabilidad String?
+  peso_inicial    Decimal?
+  fecha_entrada   DateTime?
+  Fecha_salida    DateTime?
+  id_categoria_ganado  Int?
+  id_marca_ganado      Int?
+  nro_trans Int?
+  cod_identidad_madre   String?
+
+  empresas      Empresa?   @relation(fields: [id_empresa], references: [id])
+  articulos       Articulo?    @relation(fields: [cod_articulo], references: [cod_articulo])
+  categorias_ganado    Categoria_ganado?       @relation(fields: [id_categoria_ganado], references: [id])
+  marcas_ganado        Marca_ganado?           @relation(fields: [id_marca_ganado], references: [id])
+
+  @@map("cpt_identidad")
+
+}
+
+
+
+
+
+model Cpt_altaganado {
+
+  id              Int       @id @default(autoincrement())
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  estado          String    @default("S")
+  cod_articulo    String?
+  nro_lote        String
+  cod_identidad   String
+  dias            Int
+  meses           Int
+  propietario     String
+  ubicacion       String
+  tenedor         String
+  status_vida     String
+  errores         String
+  sexo            String
+  cruza           String
+  id_empresa      Int?
+  fecha_ingreso   DateTime?
+  documento_ingreso String?
+  fecha_identificacion DateTime?
+  fecha_registro    DateTime?
+  status_trazabilidad String?
+  peso_inicial    Decimal?
+  fecha_entrada   DateTime?
+  fecha_salida    DateTime?
+  id_categoria_ganado  Int?
+  id_marca_ganado    Int?
+  id_motivos_stk   Int
+  observaciones String
+  cod_identidad_madre   String?
+  otro String
+  nro_trans Int?
+  
+
+  empresas      Empresa?   @relation(fields: [id_empresa], references: [id])
+  articulos       Articulo?    @relation(fields: [cod_articulo], references: [cod_articulo])
+  categorias_ganado    Categoria_ganado?       @relation(fields: [id_categoria_ganado], references: [id])
+  marcas_ganado        Marca_ganado?           @relation(fields: [id_marca_ganado], references: [id])
+
+  @@map("cpt_altaganado")
+
+}
+
+
+
+
+
+
+
+model Cpt_ingresoRomaneo {
+  id              Int       @id @default(autoincrement())
+  nro_trans       Int
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  estado          String    @default("S")
+  importe_mo      Decimal?
+  importe_mn      Decimal?
+  importe_tr      Decimal?  
+  importe_total_mo      Decimal?
+  importe_total_mn      Decimal?
+  importe_total_tr      Decimal?
+  importe_iva_mo      Decimal?
+  importe_iva_mn      Decimal?
+  importe_iva_tr      Decimal?
+  cantidad_animales   Decimal?
+  cantidad_kilos_declarados Decimal?
+  cantidad_kilos_cuarta_balanza Decimal?
+  cantidad_kilos_salida Decimal?
+  porcentaje_rendimiento Decimal?
+  nro_romaneo Int?
+  nro_tropa Int?
+  fecha           DateTime?
+  nro_trans_ref   Int
+  serie_fact_prov String
+  nro_fact_prov   Int
+  id_moneda       Int
+  id_titular      Int
+  id_empresa      Int       @default(1)
+  monedas         Moneda    @relation(fields: [id_moneda], references: [id])
+  titulares       Titular   @relation(fields: [id_titular], references: [id])
+  tc              Decimal?
+  cod_docum       String
+  afecta_costo        String?
+
+  @@map("cpt_ingresoromaneo")
+
+}
+
+
+model Tipos_archivo_lector {
+  id              Int       @id @default(autoincrement())
+  nro_trans       Int
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  estado          String    @default("S")
+  nombre          String
+  descripcion     String
+  campos          String
+  tipo            String
+  id_empresa      Int       @default(1)
+  id_proceso      Int?      
+  @@map("tipos_archivo_lector")
+  
+}
+
+
+model Cpp_ingresoRomaneo {
+  id              Int       @id @default(autoincrement())
+  nro_trans       Int
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  estado          String    @default("S")
+  cantidad        Int
+  precio_unitario Decimal
+  importe_mo      Decimal?
+  importe_mn      Decimal?
+  importe_tr      Decimal?  
+  importe_total_mo      Decimal?
+  importe_total_mn      Decimal?
+  importe_total_tr      Decimal?
+  importe_iva_mo      Decimal?
+  importe_iva_mn      Decimal?
+  importe_iva_tr      Decimal?
+  kilos_salida Decimal?
+  kilos_calc_declarado Decimal?
+  kilos_calc_cuarta_balanza Decimal?
+  importe_mo_peso_salida  Decimal?
+  importe_mo_peso_entrada  Decimal?
+  importe_mo_peso_cuarta_balanza  Decimal?
+  cod_identidad String?
+  fecha           DateTime?
+  serie_fact_prov String
+  nro_fact_prov   Int
+  id_moneda       Int
+  id_titular      Int
+  id_empresa      Int       @default(1)
+  tc              Decimal?
+  cod_docum       String
+  cod_articulo    String
+  articulos       Articulo    @relation(fields: [cod_articulo], references: [cod_articulo])
+  monedas         Moneda    @relation(fields: [id_moneda], references: [id])
+  titulares       Titular   @relation(fields: [id_titular], references: [id])
+
+  @@map("cpp_ingresoromaneo")
+}
+
+
+
+model Cpt_relaciono_snig {
+  id                   Int              @id @default(autoincrement())
+  nro_trans            Int              
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
+  estado               String           @default("S")
+  cantidad_ganado      Decimal?
+  fecha                DateTime?
+  observaciones          String?
+  id_empresa           Int?              @default(1)
+ 
+  @@map("cpt_relaciono_snig")
+
+}
+
+model Cpt_caravanas_no_procesadas {
+  id                   Int              @id @default(autoincrement())
+  nro_trans            Int              
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
+  estado               String           @default("S")
+  cod_identidad        String
+  fecha                DateTime?
+  observaciones          String?
+  id_empresa           Int?              @default(1)
+ 
+  @@map("cpt_caravanas_no_procesadas")
+
+}
+
+
+
+
+
+
+model Cpt_movimiento_stock {
+  id                   Int              @id @default(autoincrement())
+  nro_trans            Int              
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
+  estado               String           @default("S")
+  peso_total_real      Decimal?
+  peso_total_facturado Decimal?
+  cantidad_ganado      Decimal?
+  fecha                DateTime?
+  serie_guia           String?
+  nro_guia             String?
+  bania_garrapata      Boolean?
+  valor_dicose         Int?
+  id_propiedad_ganado  Int?
+  observaciones          String?
+  cod_articulo         String?
+  nro_lote             String?
+  id_tipo_toma_peso    Int?
+  id_motivo_stk        Int?
+  id_empresa           Int?              @default(1)
+  articulos            Articulo?         @relation(fields: [cod_articulo], references: [cod_articulo])
+  motivos_stock        Motivo_mov_stock? @relation(fields: [id_motivo_stk], references: [id])
+  propiedad_ganado     Propiedad_ganado? @relation(fields: [id_propiedad_ganado], references: [id])
+  tipos_toma_peso      Tipo_toma_peso?   @relation(fields: [id_tipo_toma_peso], references: [id])
+  dicoses              Dicose?           @relation(fields: [valor_dicose], references: [id])
+
+  @@map("cpt_movimiento_stock")
+}
+
+model Cpp_movimiento_stock {
+  id            Int       @id @default(autoincrement())
+  nro_trans     Int?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  estado        String    @default("S")
+  cantidad      Decimal?
+  cantidad2     Decimal?
+  cantidad3     Decimal?
+  fecha         DateTime?
+  nro_lote      String?       
+  cod_identidad String?
+  cod_articulo  String
+  id_empresa    Int
+  articulos     Articulo  @relation(fields: [cod_articulo], references: [cod_articulo])
+  empresas      Empresa   @relation(fields: [id_empresa], references: [id])
+
+  @@map("cpp_movimiento_stock")
+}
+
+
+
+model Cpt_registro_sanitario {
+  id                   Int              @id @default(autoincrement())
+  nro_trans            Int
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
+  estado               String           @default("S")
+  peso_total_real      Decimal?
+  peso_total_facturado Decimal?
+  cantidad_ganado      Decimal?
+  fecha                DateTime?
+  id_motivo_sanitario  Int
+  id_empresa           Int              @default(1)
+  en_alta              Boolean
+  cod_articulo         String?
+  articulos            Articulo? @relation(fields: [cod_articulo], references: [cod_articulo])
+  motivos_sanitario    Motivo_sanitario @relation(fields: [id_motivo_sanitario], references: [id])
+  empresas             Empresa @relation(fields: [id_empresa], references: [id])
+
+  cpp_regsitros_sanitario Cpp_registro_sanitario[]
+  cpf_regsitros_sanitario Cpf_registro_sanitario[]
+
+  @@map("cpt_registro_sanitario")
+}
+model cpt_parametros_x_fecha{
+  id            Int       @id @default(autoincrement())
+  nro_trans     Int?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  estado        String    @default("S")
+  fecha         DateTime
+  precio_vaca_cuarta_balanza Decimal
+  precio_vaca_invernada_pie Decimal?
+  precio_vaca_invernada_cuarta_balanza Decimal?
+  precio_ternero_exportacion_pie Decimal?
+  precio_ternera_exportacion_pie Decimal?
+  precio_vaquillona_cuarta_balanza Decimal
+  precio_vaquillona_pie Decimal?  
+  precio_novillo_cuarta_balanza Decimal
+  precio_novillo_pie Decimal?   
+  tc            Decimal
+
+
+  //@@map("cpt_parametros_x_fecha")
+
+}
+
+model Cpt_parametros_x_empresa{
+  id            Int       @id @default(autoincrement())
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  estado        String    @default("S")
+  locacion_accuweather String
+  api_accuweather            String
+  id_empresa           Int              @default(1)
+  empresas             Empresa @relation(fields: [id_empresa], references: [id])
+  
+  @@map("cpt_parametros_x_empresa")
+
+}
+
+model Cpp_registro_sanitario {
+  id            Int       @id @default(autoincrement())
+  nro_trans     Int?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  estado        String    @default("S")
+  cantidad      Decimal?
+  cantidad2     Decimal?
+  cantidad3     Decimal?
+  fecha         DateTime?
+  nro_lote      String?       
+  cod_identidad String?
+  cod_articulo  String
+  id_empresa    Int
+  id_motivo_sanitario  Int  
+  id_padre  Int  
+  resultadoTest Boolean?
+  motivos_sanitario    Motivo_sanitario @relation(fields: [id_motivo_sanitario], references: [id])
+  articulos     Articulo  @relation(fields: [cod_articulo], references: [cod_articulo])
+  empresas      Empresa   @relation(fields: [id_empresa], references: [id])
+  cpt_registros_sanitarios Cpt_registro_sanitario @relation(fields: [id_padre], references: [id])
+
+  @@map("cpp_registro_sanitario")
+}
+
+model Cpf_registro_sanitario {
+  id            Int       @id @default(autoincrement())
+  nro_trans     Int?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  estado        String    @default("S")
+  cantidad      Decimal?
+  cantidad2     Decimal?
+  cantidad3     Decimal?
+  fecha         DateTime?
+  nro_lote      String?       
+  cod_identidad String?
+  cod_articulo  String
+  id_empresa    Int
+  id_motivo_sanitario  Int  
+  signo Int
+  id_padre  Int  
+  resultadoTest Boolean?
+  motivos_sanitario    Motivo_sanitario @relation(fields: [id_motivo_sanitario], references: [id])
+  articulos     Articulo  @relation(fields: [cod_articulo], references: [cod_articulo])
+  empresas      Empresa   @relation(fields: [id_empresa], references: [id])
+  cpt_registros_sanitarios Cpt_registro_sanitario @relation(fields: [id_padre], references: [id])
+
+  @@map("cpf_registro_sanitario")
+}
+
+
+
+
+model Numerador {
+  id          Int      @id @default(autoincrement())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  estado      String   @default("S")
+  descripcion String
+  valor       Int
+
+  @@map("numeradores")
+}
+
+model Dicose {
+  id                   Int                    @id @default(autoincrement())
+  createdAt            DateTime               @default(now())
+  updatedAt            DateTime               @updatedAt
+  estado               String                 @default("S")
+  valor          String?
+  descripcion          String?
+  id_empresa           Int?
+  cpt_movimiento_stock Cpt_movimiento_stock[]
+
+  @@map("dicoses")
+}
+
+
+model Seccion {
+  id                   Int                    @id @default(autoincrement())
+  createdAt            DateTime               @default(now())
+  updatedAt            DateTime               @updatedAt
+  estado               String                 @default("S")
+  id_mod               Int                   @default(0)
+  descripcion          String?
+  tabla                String
+  modelo               String
+  id_seccion_padre     Int
+  borrado_fisico       Boolean?
+  borrado_logico       Boolean?
+  id_empresa           Int?
+
+  cpf_log Cpf_log[]
+  permisos_x_usuario_seccion Permisos_x_usuario_seccion[]
+  controles_x_seccion_accion Controles_x_seccion_accion[]
+  permisos_x_rol_seccion Permisos_x_rol_seccion[] 
+
+  @@map("secciones")
+}
+
+model Accion {
+  id                   Int                    @id @default(autoincrement())
+  createdAt            DateTime               @default(now())
+  updatedAt            DateTime               @updatedAt
+  estado               String                 @default("S")
+  id_mod               Int                   @default(0)
+  descripcion          String?
+
+  cpf_log Cpf_log[]
+  permisos_x_usuario_seccion Permisos_x_usuario_seccion[]
+  controles_x_seccion_accion Controles_x_seccion_accion[]
+  permisos_x_rol_seccion Permisos_x_rol_seccion[] 
+
+  @@map("acciones")
+}
+
+
+
+model Cpf_log {
+  id                   Int                    @id @default(autoincrement())
+  createdAt            DateTime               @default(now())
+  updatedAt            DateTime               @updatedAt
+  estado               String                 @default("S")
+  descripcion          String?
+  fecha                DateTime
+  id_registro          Int?
+  nro_trans            Int?
+  id_seccion    Int
+  cod_docum String?
+  observacion String?
+    id_empresa           Int
+  secciones  Seccion  @relation(fields: [id_seccion], references: [id])
+  id_accion    Int
+  acciones  Accion  @relation(fields: [id_accion], references: [id])
+
+
+  @@map("cpf_log")
+}
+
+model Permisos_x_usuario_seccion {
+  id                   Int                    @id @default(autoincrement())
+  createdAt            DateTime               @default(now())
+  updatedAt            DateTime               @updatedAt
+  estado               String                 @default("S")
+  id_mod               Int                   @default(0)
+  id_usuario          Int
+  usuarios  Usuario  @relation(fields: [id_usuario], references: [id])
+  id_seccion    Int
+  secciones  Seccion  @relation(fields: [id_seccion], references: [id])
+  id_accion    Int
+  acciones  Accion  @relation(fields: [id_accion], references: [id])
+
+
+  @@map("permisos_x_usuario_seccion")
+}
+
+
+model Control_trans {
+  id                   Int                    @id @default(autoincrement())
+  createdAt            DateTime               @default(now())
+  updatedAt            DateTime               @updatedAt
+  estado               String                 @default("S")
+  id_mod               Int                   @default(0)
+  nombre               String?
+  descripcion          String?
+  persistente          Boolean
+  mensaje_error_general        String
+  lanzamiento Int
+
+
+  controles_x_seccion_accion Controles_x_seccion_accion[]
+
+
+  @@map("control_trans")
+}
+
+
+model Controles_x_seccion_accion {
+  id                   Int                    @id @default(autoincrement())
+  createdAt            DateTime               @default(now())
+  updatedAt            DateTime               @updatedAt
+  estado               String                 @default("S")
+  id_mod               Int                   @default(0)
+  id_seccion    Int
+  secciones  Seccion  @relation(fields: [id_seccion], references: [id])
+  id_accion    Int
+  acciones  Accion  @relation(fields: [id_accion], references: [id])
+  id_control Int
+  control_trans  Control_trans  @relation(fields: [id_control], references: [id])
+  mensaje_error_especifico       String
+  lanzamiento Int
+  campo_form String
+
+  @@map("controles_x_seccion_accion")
+}
+
+
+
+model Cpt_facturas {
+  id              Int       @id @default(autoincrement())
+  nro_trans       Int
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  estado          String    @default("S")
+  importe_mo      Decimal?
+  importe_mn      Decimal?
+  importe_tr      Decimal?
+  fecha           DateTime?
+  nro_trans_ref   Int
+  serie_fact_prov String
+  cod_docum       String
+  nro_tropa       String
+  nro_lote_salida String
+  nro_fact_prov   Int
+  id_moneda       Int
+  id_titular      Int
+  id_empresa      Int       @default(1)
+  monedas         Moneda    @relation(fields: [id_moneda], references: [id])
+  titulares       Titular   @relation(fields: [id_titular], references: [id])
+  tc              Int
+
+
+  @@map("cpt_facturas")
+}
+
+
+
+model Cpp_facturas {
+  id              Int       @id @default(autoincrement())
+  nro_trans       Int
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  estado          String    @default("S")
+  cantidad        Int
+  precio_unitario Decimal
+  importe_mo      Decimal?
+  importe_mn      Decimal?
+  importe_tr      Decimal?  
+  importe_total_mo      Decimal?
+  importe_total_mn      Decimal?
+  importe_total_tr      Decimal?
+  importe_iva_mo      Decimal?
+  importe_iva_mn      Decimal?
+  importe_iva_tr      Decimal?
+  fecha           DateTime?
+  serie_fact_prov String
+  nro_fact_prov   Int
+  id_moneda       Int
+  id_titular      Int
+  id_empresa      Int       @default(1)
+  tc              Decimal?
+  cod_docum       String
+  nro_lote        String
+  cod_identidad   String
+  cod_articulo    String
+  articulos       Articulo    @relation(fields: [cod_articulo], references: [cod_articulo])
+  monedas         Moneda    @relation(fields: [id_moneda], references: [id])
+  titulares       Titular   @relation(fields: [id_titular], references: [id])
+
+  @@map("cpp_facturas")
+}
+
+
+
+model Cpf_contaux {
+  id              Int       @id @default(autoincrement())
+  nro_trans       Int
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  estado          String    @default("S")
+  importe_mo      Decimal?
+  importe_mn      Decimal?
+  importe_tr      Decimal?
+  importe_total_mo      Decimal?
+  importe_total_mn      Decimal?
+  importe_total_tr      Decimal?
+  importe_iva_mo      Decimal?
+  importe_iva_mn      Decimal?
+  importe_iva_tr      Decimal?
+  fecha           DateTime?
+  nro_trans_ref   Int
+  signo           Int
+  serie_fact String
+  cod_docum       String
+  nro_fact   Int
+  id_moneda       Int
+  id_titular      Int
+  id_empresa      Int       @default(1)
+  monedas         Moneda    @relation(fields: [id_moneda], references: [id])
+  titulares       Titular   @relation(fields: [id_titular], references: [id])
+  tc              Decimal?
+
+
+  @@map("cpf_contaux")
+}
+
+model Permisos_x_rol_seccion {
+  id                   Int                    @id @default(autoincrement())
+  createdAt            DateTime               @default(now())
+  updatedAt            DateTime               @updatedAt
+  estado               String                 @default("S")
+  id_mod               Int                   @default(0)
+  id_seccion    Int
+  secciones  Seccion  @relation(fields: [id_seccion], references: [id])
+  id_accion    Int
+  acciones  Accion  @relation(fields: [id_accion], references: [id])
+  id_rol    Int
+  roles  Rol  @relation(fields: [id_rol], references: [id])
+
+  @@map("permisos_x_rol_seccion")
+}
